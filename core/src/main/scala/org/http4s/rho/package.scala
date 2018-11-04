@@ -1,5 +1,8 @@
 package org.http4s
 
+import cats.data.Kleisli
+
+import scala.collection.immutable.Seq
 import cats.syntax.functor._
 import cats.{FlatMap, Functor, Monad}
 import org.http4s.rho.Result.BaseResult
@@ -16,6 +19,13 @@ import scala.util.control.NonFatal
 
 package object rho extends org.http4s.syntax.AllSyntax {
   type RhoMiddleware[F[_]] = Seq[RhoRoute[F, _ <: HList]] => Seq[RhoRoute[F, _ <: HList]]
+  type AuthedRhoRoutes[F[_], U] = RhoRoutes[Kleisli[F, U, ?]]
+
+  implicit def authedRhoRoutesSyntax[F[_], U](rhoRoutes: RhoRoutes[Kleisli[F, U, ?]]): AuthedRhoRoutesSyntax[F,U] =
+    AuthedRhoRoutesSyntax[F, U](rhoRoutes)
+
+  implicit def authedRhoRoutesRawSyntax[F[_]: Monad, U](rhoRoutes: Seq[RhoRoute[Kleisli[F, U, ?], _ <: HList]]): AuthedRhoRoutesSyntax[F,U] =
+    AuthedRhoRoutesSyntax[F, U](new RhoRoutes(rhoRoutes))
 
   val PathEmpty: PathRule = PathMatch("")
 }
