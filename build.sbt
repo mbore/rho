@@ -12,7 +12,7 @@ lazy val rho = project
   .in(file("."))
   .disablePlugins(MimaPlugin)
   .settings(buildSettings: _*)
-  .aggregate(`rho-core`, `rho-hal`, `rho-swagger`, `rho-examples`)
+  .aggregate(`rho-core`, `rho-hal`, `rho-swagger`, `rho-examples`, `rho-refined`)
 
 lazy val `rho-core` = project
   .in(file("core"))
@@ -42,6 +42,12 @@ lazy val `rho-swagger` = project
   .settings(buildSettings :+ swaggerDeps: _*)
   .settings(mimaConfiguration)
   .dependsOn(`rho-core` % "compile->compile;test->test")
+
+lazy val `rho-refined` = project
+  .in(file("refined"))
+  .settings(buildSettings :+ refinedDeps: _*)
+  .settings(mimaConfiguration)
+  .dependsOn(`rho-core`)
 
 lazy val docs = project
   .in(file("docs"))
@@ -87,7 +93,7 @@ lazy val `rho-examples` = project
         libraryDependencies ++= Seq(logbackClassic, http4sXmlInstances),
         dontPublish
       ): _*)
-  .dependsOn(`rho-swagger`, `rho-hal`)
+  .dependsOn(`rho-swagger`, `rho-hal`, `rho-refined`)
 
 lazy val compilerFlags = Seq(
   "-feature",

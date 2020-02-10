@@ -5,9 +5,12 @@ import cats.effect.Effect
 import cats.implicits._
 import com.http4s.rho.swagger.demo.JsonEncoder.{AutoSerializable, _}
 import com.http4s.rho.swagger.demo.MyRoutes._
+import eu.timepit.refined.api.Refined
+import eu.timepit.refined.numeric.Positive
 import fs2.Stream
 import org.http4s.rho.RhoRoutes
 import org.http4s.rho.bits._
+import org.http4s.rho.bits.refined._
 import org.http4s.rho.swagger.{SwaggerFileResponse, SwaggerSyntax}
 import org.http4s.{EntityDecoder, Headers, HttpDate, Request, ResponseCookie, Uri, headers}
 import shapeless.HNil
@@ -38,6 +41,9 @@ class MyRoutes[F[+_] : Effect](swaggerSyntax: SwaggerSyntax[F])
   "A variant of the hello route that takes an Int param" **
     hello / pathVar[Int] |>> { i: Int => Ok(s"You returned $i") }
 
+  "A variant of the hello route that takes an Int param" **
+    hello / pathVar[Int] / pathVar[Int] |>> { (i: Int, i2:Int) => Ok(s"You returned $i $i2") }
+
   "This route allows you to send head request" **
     HEAD / "hello" |>> { Ok("Hello head!") }
 
@@ -49,6 +55,13 @@ class MyRoutes[F[+_] : Effect](swaggerSyntax: SwaggerSyntax[F])
       if (i >= 0) Ok(JsonResult("Good result", i))
       else BadRequest(s"Negative number: $i")
     }
+
+  type PositiveInt = Int Refined Positive
+  "A variant of the hello route that takes an Positive Int param" **
+    hello / "refined" / pathVar[PositiveInt] |>> { i: PositiveInt => Ok(s"You returned positive [$i].") }
+
+  "A variant of the hello route that takes an Positive Int param" **
+    hello / "refined" / pathVar[PositiveInt] / pathVar[PositiveInt] |>> { (i: PositiveInt, i2: PositiveInt) => Ok(s"You returned positive [$i], [$i2].") }
 
   // Normally this would be part of the constructor since its creation is 'unsafe'
   private val counterRef = cats.effect.concurrent.Ref.unsafe[F, Int](0)
